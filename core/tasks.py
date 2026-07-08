@@ -86,10 +86,19 @@ def scroll_and_select_user(page, username, targets):
 
     logger.debug(f"账号 {username} 进入好友列表页面")
 
-    # 确保第一个好友元素加载完成
+    # 确保页面完全加载（网络请求结束），避免元素还没渲染出来
+    page.wait_for_load_state('networkidle')
+
+    # 等待第一个好友元素出现，超时后截图方便排查
     first_friend_selector = 'xpath=//*[@id="sub-app"]/div/div/div[2]/div[2]/div/div/div[1]/div/div/div/ul/div/div/div[1]/li/div'
-    page.wait_for_selector(first_friend_selector)
-    page.locator(first_friend_selector).click()  # 点击第一个好友，确保列表激活
+    try:
+        page.wait_for_selector(first_friend_selector, timeout=15000)  # 15秒，可按需调整
+        page.locator(first_friend_selector).click()
+        logger.debug(f"账号 {username} 已激活好友列表，开始滚动查找目标好友")
+    except Exception:
+        # 截图保存到当前目录，便于查看页面实际状态（登录失效？验证码？）
+        page.screenshot(path='debug.png')
+        raise   # 仍然抛出异常，让外层重试或记录错误
 
     logger.debug(f"账号 {username} 已激活好友列表，开始滚动查找目标好友")
 
