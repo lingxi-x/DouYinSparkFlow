@@ -35,6 +35,12 @@ jobs:
       with:
         name: run-logs
         path: logs/
+    - name: Upload screenshot
+      if: failure()         
+      uses: actions/upload-artifact@v4
+      with:
+        name: debug-screenshot
+        path: debug.png
   workflow-keepalive:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
