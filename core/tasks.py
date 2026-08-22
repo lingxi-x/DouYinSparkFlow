@@ -65,14 +65,23 @@ def retry_operation(name, operation, retries=3, delay=2, *args, **kwargs):
 def scroll_and_select_user(page, username, targets, userIDDict):
     """尝试滚动并查找用户名"""
     # 定义目标元素和滚动容器的选择器
-    friends_tab_selector = 'xpath=//*[@id="sub-app"]/div/div/div[1]/div[2]'
-    target_selector = 'xpath=//*[@id="sub-app"]/div/div[1]/div[2]/div[2]//div[contains(@class, "semi-list-item-body semi-list-item-body-flex-start")]'
-    scrollable_friends_selector = 'xpath=//*[@id="sub-app"]/div/div[1]/div[2]/div[2]/div/div/div[3]/div/div/div/ul/div'
-    
-    # [修复] 使用模糊匹配 no-more-tip- 前缀，不再依赖精确哈希后缀
-    # 同时增加文本匹配作为兜底
-    no_more_selector = 'xpath=//div[contains(@class, "no-more-tip-")]'
-    loading_selector = 'xpath=//div[contains(@class, "semi-spin")]'
+    # 1. 朋友私信标签页
+    friends_tab_selector = "role=tab[name='朋友私信']"  # 或 "div[role='tab']:has-text('朋友私信')"
+
+    # 2. 好友列表项（每个好友的容器）
+    target_selector = "li[role='listitem']"  # 或 "li.semi-list-item"
+
+    # 3. 好友昵称（在列表项内部）
+    name_span_selector = "span[class*='item-header-name-']"
+
+    # 4. 滚动容器（虚拟列表的滚动元素）
+    scrollable_friends_selector = "div.ReactVirtualized__Grid"
+
+    # 5. 加载状态指示器（列表加载时显示）
+    loading_selector = ".semi-spin"  # 或 ".list-zrsZ82 .semi-spin"（但类名可能变化）
+
+    # 6. “没有更多”提示 —— 当前页面不存在该元素，移除检测，改用空滚动计数判定
+    no_more_selector = None  # 不再使用
 
     logger.debug(f"账号 {username} 开始查找目标好友列表")
     logger.debug(f"账号 {username} 目标好友列表: {targets}")
